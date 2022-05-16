@@ -116,6 +116,8 @@ int main(void)
 		Error_Handler();
 
 	printf("Function printf also working\r\n");
+
+	printf("Device ID: %lu\r\n", HAL_GetDEVID());
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -126,12 +128,12 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 		// Gpio, push button
-		// by default, PUSH_BUTTON is at 1
+		// by default, PUSH_BUTTON is at 1, report to board schematic
 		PinState = HAL_GPIO_ReadPin(GPIOC, B1_Pin);
 		if (PinState == 1)
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		else
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 
 		// UART (transmit receive character)
 		if (HAL_UART_Receive(&huart2, rx_buffer, 1, 10) == HAL_OK) {
