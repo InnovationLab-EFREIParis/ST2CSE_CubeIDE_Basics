@@ -13,7 +13,7 @@ General purpose Input Outpout. Ce sont les broches du micro controleur qui peuve
 Il y a 3 ports (A, B, C) comportant chacun 16 broches. Par exemple, PA8 est la 8e broche du port A.
 
 ## Basics.ioc
-Clique gauche sur les broches pour les configurer en sorties ou en entré
+Clique gauche sur les broches pour les configurer en sorties ou en entré<br>
 Clique droit sur une broche pour lui donner un user_label
 
 ## main.h
