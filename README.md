@@ -10,17 +10,17 @@ Les fonctions fournient par ARM n'ont pas specialement d'identifiant, elles se t
 
 # GPIO
 General purpose Input Outpout. Ce sont les broches du micro controleur qui peuvent être utilisées comme entrée ou sortie selon leur configuration. On y branche typiquement une LED ou un bouton poussoir.
-Il y a 3 ports (A, B, C) comportant chacun 16 broches. Par exemple, PA8 est la 8e broche du port A.
+Il y a 3 ports (A, B, C) comportant chacun 16 broches. Par exemple, PA8 est la 8e broche du port A. Il y a theoriquement 48 GPIO de disponible sur notre carte.
 
 ## Basics.ioc
 Clique gauche sur les broches pour les configurer en sorties ou en entré<br>
 Clique droit sur une broche pour lui donner un user_label
 
 ## main.h
-Les directives suivantes permettent de faire le lien entre les user_label et les noms des broches
-#define user_label nom_broche
-#define B1_Pin GPIO_PIN_13
-#define LD2_Pin GPIO_PIN_5
+Les directives suivantes permettent de faire le lien entre les user_label et les noms des broches<br>
+#define user_label nom_broche<br>
+#define B1_Pin GPIO_PIN_13<br>
+#define LD2_Pin GPIO_PIN_5<br>
 #define D8_Pin GPIO_PIN_9
 
 ## main.c
