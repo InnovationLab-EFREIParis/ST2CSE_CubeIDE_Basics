@@ -38,3 +38,11 @@ Exemple: PinState = HAL_GPIO_ReadPin(GPIOC, B1_Pin);
 
 ## Drivers>STM32L4xx_HAL_Driver>stm32l4xx_hal_gpio.h
 Ce fichier fournit par STMicro définit les masques derriere les alias GPIO_PIN_X ainsi que toutes les fonctions relatives à l'utilisation des GPIO
+
+# Timer
+Les timers sont configurées via Basic.ioc. Ce programme utilise le timer2 (general purpose timer) pour eploiter le sonar HC_SR04. Un pulse de 10µs est généré sur D8, et la durée de l'écho (proportionnelle à la distance de l'objet) est mesuré sur D9. Ces durées sont mesurés grace au timer2
+
+## HAL_StatusTypeDef HAL_TIM_Base_Init(TIM_HandleTypeDef *htim)
+
+## HAL_StatusTypeDef HAL_TIM_Base_Start(TIM_HandleTypeDef *htim);
+## HAL_StatusTypeDef HAL_TIM_Base_Stop(TIM_HandleTypeDef *htim);
