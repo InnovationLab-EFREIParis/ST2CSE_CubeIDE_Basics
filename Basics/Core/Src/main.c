@@ -44,6 +44,8 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+// Fonction nécessaire au fonctionnement de printf()
+// ELle définit huart2 comme périphérique d'affichage
 int _write(int file, char *data, int len) {
 	if ((file != STDOUT_FILENO) && (file != STDERR_FILENO)) {
 		errno = EBADF;
@@ -129,7 +131,7 @@ int main(void)
 
 		// Gpio, push button
 		// by default, PUSH_BUTTON is at 1, report to board schematic
-		PinState = HAL_GPIO_ReadPin(GPIOC, B1_Pin);
+		PinState = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 		if (PinState == 1)
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
 		else
