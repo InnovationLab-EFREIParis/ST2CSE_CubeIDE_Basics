@@ -6,6 +6,8 @@ Dans Core>Src>main.c, l'utilisateur peut seulement écrire du code entre les bali
 En effet, Basics.ioc est une interface graphique permettant de configurer le microcontroleur, elle génére du code de façon automatique et peut donc modifier le main.c.
 Les fonctions commençant par le préfixe HAL (Hardware Abstraction Layer) permettent de configurer et d'utiliser les ressources du microcontroler. Elles sont fournient par STMicroElectronics. Elles sont dans le dossier Drivers>STM32L4XX_HAL_Driver.
 Les fonctions fournient par ARM n'ont pas specialement d'identifiant, elles se trouvent dans Drivers>CMSIS
+**A savoir 2**
+Dans Basics.ioc>ProjectManager>CodeGenerator, activer Generate Peripherals as pair of .c/.h files
 
 
 # GPIO

@@ -18,6 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
+#include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -41,9 +44,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-TIM_HandleTypeDef htim2;
-
-UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
@@ -71,16 +71,13 @@ void delay_us(uint16_t us);
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
-static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t rx_buffer[2];
+char uart_rx_buffer[2];
 GPIO_PinState PinState;
 
 /* USER CODE END 0 */
@@ -91,7 +88,8 @@ GPIO_PinState PinState;
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
-	//int distance_mm = 0;
+	char uart_tx_buff[50];
+	int uart_tx_buf_len;
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -123,8 +121,9 @@ int main(void) {
 		HAL_Delay(100);
 	}
 
-	// Welcome message on UART
-	if (HAL_UART_Transmit(&huart2, (uint8_t*) "Nucleo L476RG connected\n\r", 25,
+	// Send welcome message on UART
+	uart_tx_buf_len = sprintf(uart_tx_buff, "Nucleo L476RG connected\n\r");
+	if (HAL_UART_Transmit(&huart2, (uint8_t*) uart_tx_buff, uart_tx_buf_len,
 			100) != HAL_OK)
 		Error_Handler();
 	printf("Function printf also working\r\n");
@@ -138,11 +137,12 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 
+		// Get Distance from HC_SR04
 		printf("Sonar distance %d mm\r\n", sonar_distance_mm());
 		HAL_Delay(500);
 
 		// Gpio, push button
-		// by default, PUSH_BUTTON is at 1, report to board schematic
+		// By default, PUSH_BUTTON is at 1, report to board schematic
 		PinState = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
 		if (PinState == 1)
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
@@ -150,8 +150,8 @@ int main(void) {
 			HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
 
 		// UART (transmit received character)
-		if (HAL_UART_Receive(&huart2, rx_buffer, 1, 10) == HAL_OK) {
-			HAL_UART_Transmit(&huart2, rx_buffer, 1, 10);
+		if (HAL_UART_Receive(&huart2, uart_rx_buffer, 1, 10) == HAL_OK) {
+			HAL_UART_Transmit(&huart2, uart_rx_buffer, 1, 10);
 		} else {
 			__HAL_UART_CLEAR_OREFLAG(&huart2);
 		}
@@ -201,113 +201,6 @@ void SystemClock_Config(void) {
 	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK) {
 		Error_Handler();
 	}
-}
-
-/**
- * @brief TIM2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_TIM2_Init(void) {
-
-	/* USER CODE BEGIN TIM2_Init 0 */
-
-	/* USER CODE END TIM2_Init 0 */
-
-	TIM_ClockConfigTypeDef sClockSourceConfig = { 0 };
-	TIM_MasterConfigTypeDef sMasterConfig = { 0 };
-
-	/* USER CODE BEGIN TIM2_Init 1 */
-
-	/* USER CODE END TIM2_Init 1 */
-	htim2.Instance = TIM2;
-	htim2.Init.Prescaler = 80 - 1;
-	htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim2.Init.Period = 0xffffffff;
-	htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-	if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-		Error_Handler();
-	}
-	sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-	if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK) {
-		Error_Handler();
-	}
-	sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-	sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-	if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig)
-			!= HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN TIM2_Init 2 */
-
-	/* USER CODE END TIM2_Init 2 */
-
-}
-
-/**
- * @brief USART2 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_USART2_UART_Init(void) {
-
-	/* USER CODE BEGIN USART2_Init 0 */
-
-	/* USER CODE END USART2_Init 0 */
-
-	/* USER CODE BEGIN USART2_Init 1 */
-
-	/* USER CODE END USART2_Init 1 */
-	huart2.Instance = USART2;
-	huart2.Init.BaudRate = 115200;
-	huart2.Init.WordLength = UART_WORDLENGTH_8B;
-	huart2.Init.StopBits = UART_STOPBITS_1;
-	huart2.Init.Parity = UART_PARITY_NONE;
-	huart2.Init.Mode = UART_MODE_TX_RX;
-	huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-	huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-	huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-	if (HAL_UART_Init(&huart2) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN USART2_Init 2 */
-
-	/* USER CODE END USART2_Init 2 */
-
-}
-
-/**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOC_CLK_ENABLE();
-	__HAL_RCC_GPIOH_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(GPIOA, LD2_Pin | D8_Trig_Pin, GPIO_PIN_RESET);
-
-	/*Configure GPIO pins : B1_Pin D9_Echo_Pin */
-	GPIO_InitStruct.Pin = B1_Pin | D9_Echo_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-	/*Configure GPIO pins : LD2_Pin D8_Trig_Pin */
-	GPIO_InitStruct.Pin = LD2_Pin | D8_Trig_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */
