@@ -78,7 +78,12 @@ GPIO_PinState PinState;
  * @retval int
  */
 int main(void) {
+
 	/* USER CODE BEGIN 1 */
+
+	int cpt_ms = 0;
+	int distance = 0;
+	const int velotcite = 340;
 
 	/* USER CODE END 1 */
 
@@ -102,7 +107,7 @@ int main(void) {
 	MX_GPIO_Init();
 	MX_USART2_UART_Init();
 	/* USER CODE BEGIN 2 */
-	// Light up green led
+// Light up green led
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
 	// blink green led
 	for (int i = 0; i < 5; i++) {
@@ -138,6 +143,26 @@ int main(void) {
 		} else {
 			__HAL_UART_CLEAR_OREFLAG(&huart2);
 		}
+
+		HAL_GPIO_WritePin(GPIOA, D8_Pin, RESET);
+		HAL_GPIO_WritePin(GPIOA, D8_Pin, SET);
+		HAL_Delay(1);
+		HAL_GPIO_WritePin(GPIOA, D8_Pin, RESET);
+		printf("Trig Done\n\r", distance);
+		while (!HAL_GPIO_ReadPin(D9_GPIO_Port, D9_Pin)){}
+		printf("Echo Received\n\r", distance);
+			while(HAL_GPIO_ReadPin(D9_GPIO_Port, D9_Pin) == 1) {
+				cpt_ms++;
+				HAL_Delay(1);
+			}
+	    distance = cpt_ms * velotcite/2;
+	    printf("Distance = %d \n\r", distance);
+	    cpt_ms=0;
+	    distance=0;
+	    HAL_Delay(1000);
+
+
+
 	}
 	/* USER CODE END 3 */
 }
@@ -234,7 +259,7 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, LD2_Pin | D8_Pin, GPIO_PIN_RESET);
 
 	/*Configure GPIO pin : B1_Pin */
 	GPIO_InitStruct.Pin = B1_Pin;
@@ -242,12 +267,18 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-	/*Configure GPIO pin : LD2_Pin */
-	GPIO_InitStruct.Pin = LD2_Pin;
+	/*Configure GPIO pins : LD2_Pin D8_Pin */
+	GPIO_InitStruct.Pin = LD2_Pin | D8_Pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	/*Configure GPIO pin : D9_Pin */
+	GPIO_InitStruct.Pin = D9_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	HAL_GPIO_Init(D9_GPIO_Port, &GPIO_InitStruct);
 
 }
 
