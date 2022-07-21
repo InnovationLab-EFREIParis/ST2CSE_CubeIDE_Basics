@@ -18,6 +18,9 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
+#include "usart.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -41,9 +44,13 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+const float sound_velocity = 0.34; // Sound velocity 0.34 mm/µs
+
+// Fonction nécessaire au fonctionnement de printf()
+// ELle définit huart2 comme périphérique d'affichage
 int _write(int file, char *data, int len) {
 	if ((file != STDOUT_FILENO) && (file != STDERR_FILENO)) {
 		errno = EBADF;
@@ -57,20 +64,22 @@ int _write(int file, char *data, int len) {
 	// return # of bytes written - as best we can tell
 	return (status == HAL_OK ? len : 0);
 }
+
+int sonar_distance_mm();
+void delay_us(uint16_t us);
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t rx_buffer[2];
+char uart_rx_buffer[2];
 GPIO_PinState PinState;
+
 /* USER CODE END 0 */
 
 /**
@@ -80,11 +89,16 @@ GPIO_PinState PinState;
 int main(void) {
 
 	/* USER CODE BEGIN 1 */
+<<<<<<< HEAD
 
 	int cpt_ms = 0;
 	int distance = 0;
 	const int velotcite = 340;
 
+=======
+	char uart_tx_buff[50];
+	int uart_tx_buf_len;
+>>>>>>> refs/remotes/origin/main
 	/* USER CODE END 1 */
 
 	/* MCU Configuration--------------------------------------------------------*/
@@ -106,20 +120,28 @@ int main(void) {
 	/* Initialize all configured peripherals */
 	MX_GPIO_Init();
 	MX_USART2_UART_Init();
+	MX_TIM2_Init();
 	/* USER CODE BEGIN 2 */
+<<<<<<< HEAD
 // Light up green led
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
+=======
+	// Light up green led
+	HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+>>>>>>> refs/remotes/origin/main
 	// blink green led
 	for (int i = 0; i < 5; i++) {
-		HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+		HAL_GPIO_TogglePin(GPIOA, LD2_Pin);
 		HAL_Delay(100);
 	}
-	// Welcome message on UART
-	if (HAL_UART_Transmit(&huart2, "Nucleo L476RG connected\n\r", 25, 100)
-			!= HAL_OK)
-		Error_Handler();
 
+	// Send welcome message on UART
+	uart_tx_buf_len = sprintf(uart_tx_buff, "Nucleo L476RG connected\n\r");
+	if (HAL_UART_Transmit(&huart2, (uint8_t*) uart_tx_buff, uart_tx_buf_len,
+			100) != HAL_OK)
+		Error_Handler();
 	printf("Function printf also working\r\n");
+	printf("Device ID: %lu\r\n", HAL_GetDEVID());
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -129,17 +151,21 @@ int main(void) {
 
 		/* USER CODE BEGIN 3 */
 
-		// Gpio, push button
-		// by default, PUSH_BUTTON is at 1
-		PinState = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
-		if (PinState == 1)
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, RESET);
-		else
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, SET);
+		// Get Distance from HC_SR04
+		printf("Sonar distance %d mm\r\n", sonar_distance_mm());
+		HAL_Delay(500);
 
-		// UART (transmit receive character)
-		if (HAL_UART_Receive(&huart2, rx_buffer, 1, 10) == HAL_OK) {
-			HAL_UART_Transmit(&huart2, rx_buffer, 1, 10);
+		// Gpio, push button
+		// By default, PUSH_BUTTON is at 1, report to board schematic
+		PinState = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+		if (PinState == 1)
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, RESET);
+		else
+			HAL_GPIO_WritePin(GPIOA, LD2_Pin, SET);
+
+		// UART (transmit received character)
+		if (HAL_UART_Receive(&huart2, uart_rx_buffer, 1, 10) == HAL_OK) {
+			HAL_UART_Transmit(&huart2, uart_rx_buffer, 1, 10);
 		} else {
 			__HAL_UART_CLEAR_OREFLAG(&huart2);
 		}
@@ -211,6 +237,7 @@ void SystemClock_Config(void) {
 	}
 }
 
+<<<<<<< HEAD
 /**
  * @brief USART2 Initialization Function
  * @param None
@@ -282,7 +309,43 @@ static void MX_GPIO_Init(void) {
 
 }
 
+=======
+>>>>>>> refs/remotes/origin/main
 /* USER CODE BEGIN 4 */
+void delay_us(uint16_t us) {
+	__HAL_TIM_SET_COUNTER(&htim2, 0);  // set the counter value a 0
+	while (__HAL_TIM_GET_COUNTER(&htim2) < us)
+		;  // wait for the counter to reach the us input in the parameter
+}
+
+int sonar_distance_mm() {
+	/*
+	 * Trig
+	 */
+	HAL_TIM_Base_Init(&htim2); // Init counter
+	HAL_GPIO_WritePin(GPIOA, D8_Trig_Pin, SET); //Set Trig pin
+	HAL_TIM_Base_Start(&htim2); //Start counter
+	while (__HAL_TIM_GET_COUNTER(&htim2) < 10)
+		//Wait 10 tick of counter (10µs)
+		;
+	HAL_GPIO_WritePin(GPIOA, D8_Trig_Pin, RESET); //Reset Trig pin
+
+	/*
+	 * Echo
+	 */
+	HAL_TIM_Base_Stop(&htim2); //Stop counter
+	HAL_TIM_Base_Init(&htim2); //Init counter
+	while (!HAL_GPIO_ReadPin(D9_Echo_GPIO_Port, D9_Echo_Pin))
+		// Wait rising edge of echo pin
+		;
+	HAL_TIM_Base_Start(&htim2); // Start counter
+
+	while (HAL_GPIO_ReadPin(D9_Echo_GPIO_Port, D9_Echo_Pin))
+		// Wait falling edge of echo pin
+		;
+	HAL_TIM_Base_Stop(&htim2); //Stop counter
+	return __HAL_TIM_GET_COUNTER(&htim2) * sound_velocity / 2; // distance = time*velocity/2
+}
 
 /* USER CODE END 4 */
 
